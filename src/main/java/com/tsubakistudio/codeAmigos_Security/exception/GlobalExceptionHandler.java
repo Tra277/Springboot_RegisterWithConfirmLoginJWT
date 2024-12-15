@@ -26,4 +26,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleExpiredTokenException(ExpiredTokenException ex,WebRequest request) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(EntityNotEnabledException.class)
+    public ResponseEntity<String> handleEntityNotEnabledException(EntityNotEnabledException ex,WebRequest request) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.LOCKED);
+    }
 }

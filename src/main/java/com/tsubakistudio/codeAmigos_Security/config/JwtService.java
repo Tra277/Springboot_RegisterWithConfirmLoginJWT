@@ -59,7 +59,7 @@ public class JwtService {
                 .subject(userDetails.getUsername())
                 //issuedAt ~= created at
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis()+ 1000 * 60 * 60 * 24) )
+                .expiration(new Date(System.currentTimeMillis()+ 1000 * 60 * 15) )
                 .signWith(getSignInKey(),Jwts.SIG.HS256)
                 //generate and return token
                 .compact();
@@ -82,7 +82,7 @@ public class JwtService {
     }
 
     //obtain a new access token
-    private String generateRefreshToken(UserDetails userDetails){
+    public String generateRefreshToken(UserDetails userDetails){
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))

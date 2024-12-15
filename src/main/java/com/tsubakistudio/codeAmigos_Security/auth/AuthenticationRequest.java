@@ -1,15 +1,13 @@
 package com.tsubakistudio.codeAmigos_Security.auth;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class AuthenticationRequest {
     private String email;
-    String password;
+    private String password;
 }

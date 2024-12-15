@@ -5,16 +5,15 @@ import com.tsubakistudio.codeAmigos_Security.confirmationToken.ConfirmationToken
 import com.tsubakistudio.codeAmigos_Security.confirmationToken.ConfirmationTokenService;
 import com.tsubakistudio.codeAmigos_Security.email.EmailSender;
 import com.tsubakistudio.codeAmigos_Security.email.EmailValidator;
-import com.tsubakistudio.codeAmigos_Security.exception.EntityAlreadyExistException;
-import com.tsubakistudio.codeAmigos_Security.exception.EntityNotFoundException;
-import com.tsubakistudio.codeAmigos_Security.exception.ExpiredTokenException;
-import com.tsubakistudio.codeAmigos_Security.exception.InvalidEmailException;
+import com.tsubakistudio.codeAmigos_Security.exception.*;
 import com.tsubakistudio.codeAmigos_Security.user.Role;
 import com.tsubakistudio.codeAmigos_Security.user.User;
 import com.tsubakistudio.codeAmigos_Security.user.UserRepository;
 import com.tsubakistudio.codeAmigos_Security.user.UserService;
 import jakarta.persistence.EntityExistsException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -39,6 +39,7 @@ public class AuthenticationService {
 
     private final ConfirmationTokenService confirmationTokenService;
     private final UserService userService;
+    private static Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
     //user can access right-away after register
     public String register(RegisterRequest request) {
@@ -71,15 +72,21 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        boolean userEnabled = userService.getUserByEmail(request.getEmail()).isEnabled();
+        if(!userEnabled){
+            throw new EntityNotEnabledException("You need to confirm email to enable user!");
+        }
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),request.getPassword()
+                        request.getEmail(), request.getPassword()
                 )
         );
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
+        var accessToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
         return AuthenticationResponse.builder()
-                .token(jwtToken)
+                .token(accessToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 
@@ -178,9 +185,11 @@ public class AuthenticationService {
 
         confirmationTokenService.setConfirmedAt(token);
         userService.enableUser(confirmationToken.getUser().getEmail());
-        var jwtToken = jwtService.generateToken(confirmationToken.getUser());
+        var accessToken = jwtService.generateToken(confirmationToken.getUser());
+        var refreshToken = jwtService.generateRefreshToken(confirmationToken.getUser());
         return AuthenticationResponse.builder()
-                .token(jwtToken)
+                .token(accessToken)
+                .refreshToken(refreshToken)
                 .build();
 
     }
