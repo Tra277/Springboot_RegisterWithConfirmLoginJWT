@@ -13,7 +13,6 @@ public class ConfirmationTokenService {
 
     public void saveConfirmationToken(ConfirmationToken confirmationToken){
         confimationTokenRepository.save(confirmationToken);
-        confimationTokenRepository.save(confirmationToken);
     }
 
     public Optional<ConfirmationToken> getToken(String token){

@@ -193,4 +193,21 @@ public class AuthenticationService {
                 .build();
 
     }
+
+    public void resendConfirmationEmail(String email) {
+        User user = userService.getUserByEmail(email);
+        if (user.isEnabled()){
+            throw new EntityNotEnabledException("User is already enabled");
+        }
+
+        String token = UUID.randomUUID().toString();
+        ConfirmationToken confirmationToken = new ConfirmationToken(
+                token,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMinutes(15),
+                user
+        );
+        String confirmLink ="http://localhost:8080/api/v1/registration/confirm?token="+token;
+        emailSender.send(user.getEmail(), buildEmail(user.getFirstName(), confirmLink));
+    }
 }

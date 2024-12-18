@@ -22,6 +22,12 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.confirmToken(token));
     }
 
+    @PostMapping("/resend-confirmation")
+    public String resendConfirmation(@RequestParam("email") String email){
+        authenticationService.resendConfirmationEmail(email);
+        return "Confirmation email resent!!! please check you email ❤";
+    }
+
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request){
         return ResponseEntity.ok(authenticationService.authenticate(request));
